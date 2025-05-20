@@ -1,32 +1,43 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>YoneSimulator</title>
   <style>
     body {
       background-color: #F5EF3D;
       margin: 0;
       padding: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      flex-direction: column;
     }
 
+    .container {
+      position: relative;
+      width: 700px;
+      height: 300px;
+    }
+
+    /* Konsol */
     .konsol {
       width: 350px;
       height: 100px;
-      background: linear-gradient(to bottom, #333 0%, #111 100%);
+      background: linear-gradient(to bottom, #333, #111);
       border-radius: 20px;
-      position: relative;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
       border-top: 5px solid #555;
       border-bottom: 5px solid #000;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      position: absolute;
+      bottom: 0;
+      left: 20px;
     }
 
-    .konsol .logo {
+    .logo {
       position: absolute;
       top: 10px;
       left: 15px;
@@ -36,13 +47,104 @@
       letter-spacing: 2px;
       text-shadow: 1px 1px 2px black;
     }
+
+    /* Televizyon */
+    .tv {
+      width: 250px;
+      height: 150px;
+      background-color: #000;
+      border: 10px solid #333;
+      border-radius: 10px;
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      overflow: hidden;
+    }
+
+    .static {
+      width: 100%;
+      height: 100%;
+      background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
+      display: none;
+    }
+
+    /* HDMI kablosu */
+    .hdmi {
+      width: 30px;
+      height: 30px;
+      background-color: #222;
+      border: 2px solid #000;
+      border-radius: 5px;
+      position: absolute;
+      bottom: 40px;
+      left: 360px;
+      cursor: grab;
+    }
+
+    .hdmi.dragging {
+      cursor: grabbing;
+    }
   </style>
 </head>
 <body>
 
-  <div class="konsol">
-    <div class="logo">TIMD</div>
+  <div class="container">
+    <!-- Konsol -->
+    <div class="konsol">
+      <div class="logo">TIMD</div>
+    </div>
+
+    <!-- HDMI kablosunun ucu -->
+    <div class="hdmi" id="hdmiPlug" draggable="true"></div>
+
+    <!-- Televizyon -->
+    <div class="tv" id="tvScreen">
+      <div class="static" id="staticEffect"></div>
+    </div>
   </div>
+
+  <script>
+    const hdmi = document.getElementById("hdmiPlug");
+    const tv = document.getElementById("tvScreen");
+    const staticEffect = document.getElementById("staticEffect");
+
+    let dragging = false;
+
+    // HDMI sürükleniyor
+    hdmi.addEventListener("mousedown", (e) => {
+      dragging = true;
+      hdmi.classList.add("dragging");
+    });
+
+    // HDMI bırakılıyor
+    document.addEventListener("mouseup", () => {
+      dragging = false;
+      hdmi.classList.remove("dragging");
+
+      // HDMI ucu televizyona denk geliyor mu?
+      const hdmiRect = hdmi.getBoundingClientRect();
+      const tvRect = tv.getBoundingClientRect();
+
+      const intersect = !(
+        hdmiRect.right < tvRect.left ||
+        hdmiRect.left > tvRect.right ||
+        hdmiRect.bottom < tvRect.top ||
+        hdmiRect.top > tvRect.bottom
+      );
+
+      if (intersect) {
+        staticEffect.style.display = "block";
+      }
+    });
+
+    // HDMI sürükleniyor konumda
+    document.addEventListener("mousemove", (e) => {
+      if (dragging) {
+        hdmi.style.left = `${e.clientX - 15}px`;
+        hdmi.style.top = `${e.clientY - 15}px`;
+      }
+    });
+  </script>
 
 </body>
 </html>
