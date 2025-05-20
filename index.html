@@ -16,29 +16,32 @@
     }
 
     .konsol {
-      width: 300px;
-      height: 150px;
-      background-color: #222;
-      border-radius: 30px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      width: 350px;
+      height: 100px;
+      background: linear-gradient(to bottom, #333 0%, #111 100%);
+      border-radius: 20px;
       position: relative;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      border-top: 5px solid #555;
+      border-bottom: 5px solid #000;
     }
 
-    .konsol h2 {
-      color: white;
-      font-family: 'Arial', sans-serif;
-      font-size: 24px;
-      letter-spacing: 3px;
+    .konsol .logo {
+      position: absolute;
+      top: 10px;
+      left: 15px;
+      font-family: 'Arial Black', sans-serif;
+      font-size: 20px;
+      color: #ccc;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 2px black;
     }
   </style>
 </head>
 <body>
 
   <div class="konsol">
-    <h2>TIMD</h2>
+    <div class="logo">TIMD</div>
   </div>
 
 </body>
