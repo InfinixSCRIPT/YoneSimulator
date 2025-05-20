@@ -59,6 +59,16 @@
       overflow: hidden;
     }
 
+    .tv-port {
+      width: 12px;
+      height: 24px;
+      background-color: black;
+      position: absolute;
+      top: 105px;
+      right: 280px;
+      border-radius: 2px;
+    }
+
     .static {
       width: 100%;
       height: 100%;
@@ -85,7 +95,7 @@
 
     .cable {
       position: absolute;
-      width: 6px; /* kabloyu kalinlastirdik */
+      width: 6px;
       background-color: black;
       z-index: 1;
       transform-origin: top left;
@@ -106,6 +116,9 @@
     <!-- HDMI Kablo Çizgisi -->
     <div class="cable" id="cableLine"></div>
 
+    <!-- TV Portu -->
+    <div class="tv-port"></div>
+
     <!-- Televizyon -->
     <div class="tv" id="tvScreen">
       <div class="static" id="staticEffect"></div>
@@ -119,7 +132,7 @@
     const cableLine = document.getElementById("cableLine");
 
     let dragging = false;
-    let offsetX = 15, offsetY = 15; // sabit ortalama
+    let offsetX = 15, offsetY = 15;
 
     const baseX = 375;
     const baseY = 310;
@@ -145,7 +158,7 @@
       );
     }
 
-    hdmi.addEventListener("mousedown", (e) => {
+    hdmi.addEventListener("mousedown", () => {
       dragging = true;
       hdmi.classList.add("dragging");
     });
@@ -178,7 +191,6 @@
       updateCable(newX + offsetX, newY + offsetY);
     });
 
-    // Sayfa yüklendiğinde kablo çizimi
     const initialX = parseInt(hdmi.style.left) || 360;
     const initialY = parseInt(hdmi.style.top) || 310;
     updateCable(initialX + 15, initialY + 15);
