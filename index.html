@@ -19,11 +19,10 @@
 
     .container {
       position: relative;
-      width: 700px;
-      height: 300px;
+      width: 800px;
+      height: 400px;
     }
 
-    /* Konsol */
     .konsol {
       width: 350px;
       height: 100px;
@@ -48,7 +47,6 @@
       text-shadow: 1px 1px 2px black;
     }
 
-    /* Televizyon */
     .tv {
       width: 250px;
       height: 150px;
@@ -57,7 +55,7 @@
       border-radius: 10px;
       position: absolute;
       right: 20px;
-      top: 20px;
+      top: 50px;
       overflow: hidden;
     }
 
@@ -68,21 +66,29 @@
       display: none;
     }
 
-    /* HDMI kablosu */
-    .hdmi {
+    .hdmi-plug {
       width: 30px;
       height: 30px;
       background-color: #222;
       border: 2px solid #000;
       border-radius: 5px;
       position: absolute;
-      bottom: 40px;
       left: 360px;
+      bottom: 90px;
       cursor: grab;
+      z-index: 10;
     }
 
-    .hdmi.dragging {
+    .hdmi-plug.dragging {
       cursor: grabbing;
+    }
+
+    .cable {
+      position: absolute;
+      width: 2px;
+      background-color: black;
+      z-index: 1;
+      transform-origin: top left;
     }
   </style>
 </head>
@@ -94,8 +100,11 @@
       <div class="logo">TIMD</div>
     </div>
 
-    <!-- HDMI kablosunun ucu -->
-    <div class="hdmi" id="hdmiPlug" draggable="true"></div>
+    <!-- HDMI Kablosunun Ucu -->
+    <div class="hdmi-plug" id="hdmiPlug"></div>
+
+    <!-- HDMI Kablo Çizgisi -->
+    <div class="cable" id="cableLine"></div>
 
     <!-- Televizyon -->
     <div class="tv" id="tvScreen">
@@ -107,21 +116,38 @@
     const hdmi = document.getElementById("hdmiPlug");
     const tv = document.getElementById("tvScreen");
     const staticEffect = document.getElementById("staticEffect");
+    const cableLine = document.getElementById("cableLine");
 
     let dragging = false;
+    let offsetX, offsetY;
 
-    // HDMI sürükleniyor
+    // Başlangıç noktası: konsoldaki sabit çıkış
+    const baseX = 375;  // hdmi başı x
+    const baseY = 310;  // hdmi başı y
+
+    function updateCable(x, y) {
+      const dx = x - baseX;
+      const dy = y - baseY;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+      cableLine.style.left = `${baseX}px`;
+      cableLine.style.top = `${baseY}px`;
+      cableLine.style.height = `${length}px`;
+      cableLine.style.transform = `rotate(${angle}deg)`;
+    }
+
     hdmi.addEventListener("mousedown", (e) => {
       dragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
       hdmi.classList.add("dragging");
     });
 
-    // HDMI bırakılıyor
     document.addEventListener("mouseup", () => {
       dragging = false;
       hdmi.classList.remove("dragging");
 
-      // HDMI ucu televizyona denk geliyor mu?
       const hdmiRect = hdmi.getBoundingClientRect();
       const tvRect = tv.getBoundingClientRect();
 
@@ -134,16 +160,25 @@
 
       if (intersect) {
         staticEffect.style.display = "block";
+      } else {
+        staticEffect.style.display = "none";
       }
     });
 
-    // HDMI sürükleniyor konumda
     document.addEventListener("mousemove", (e) => {
       if (dragging) {
-        hdmi.style.left = `${e.clientX - 15}px`;
-        hdmi.style.top = `${e.clientY - 15}px`;
+        const newX = e.clientX - offsetX;
+        const newY = e.clientY - offsetY;
+
+        hdmi.style.left = `${newX}px`;
+        hdmi.style.top = `${newY}px`;
+
+        updateCable(newX + 15, newY + 15); // hdmi kutusunun merkezi
       }
     });
+
+    // Sayfa ilk yüklendiğinde kabloyu çiz
+    updateCable(parseInt(hdmi.style.left) + 15 || baseX, parseInt(hdmi.style.top) + 15 || baseY);
   </script>
 
 </body>
