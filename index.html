@@ -74,12 +74,11 @@
       bottom: 90px;
       cursor: grab;
       z-index: 10;
-      transition: left 0.6s ease, top 0.6s ease;
+      transition: none;
     }
 
     .hdmi.dragging {
       cursor: grabbing;
-      transition: none !important;
     }
   </style>
 </head>
@@ -100,48 +99,59 @@
   <script>
     const hdmi = document.getElementById('hdmi');
     const staticEffect = document.getElementById('static');
+    const tv = staticEffect.parentElement;
 
     let dragging = false;
     let pluggedIn = false;
 
+    // HDMI sürüklenmeye başladı
     hdmi.addEventListener('mousedown', () => {
-      if (pluggedIn) return;
       dragging = true;
       hdmi.classList.add('dragging');
     });
 
     document.addEventListener('mouseup', () => {
-      if (!dragging || pluggedIn) return;
+      if (!dragging) return;
       dragging = false;
       hdmi.classList.remove('dragging');
 
       const hdmiRect = hdmi.getBoundingClientRect();
-      const tv = staticEffect.parentElement;
       const tvRect = tv.getBoundingClientRect();
 
-      // Takıldı mı diye kontrol
+      // TV ile çarpışma kontrolü
       if (!(hdmiRect.right < tvRect.left || hdmiRect.left > tvRect.right || hdmiRect.bottom < tvRect.top || hdmiRect.top > tvRect.bottom)) {
-        pluggedIn = true;
-
-        // HDMI'yı yuvaya yavaşça oturt
-        const offsetLeft = tv.offsetLeft + 100;
-        const offsetTop = tv.offsetTop + 160;
-
-        hdmi.style.left = offsetLeft + "px";
-        hdmi.style.top = offsetTop + "px";
-
-        // Karıncalanmayı başlat
         staticEffect.style.display = 'block';
+        pluggedIn = true;
+      } else {
+        staticEffect.style.display = 'none';
+        pluggedIn = false;
       }
     });
 
+    // HDMI sürükleniyor
     document.addEventListener('mousemove', (e) => {
-      if (!dragging || pluggedIn) return;
+      if (!dragging) return;
       const containerRect = document.querySelector('.container').getBoundingClientRect();
-      const x = e.clientX - containerRect.left - 15;
-      const y = e.clientY - containerRect.top - 15;
+      const x = e.clientX - containerRect.left - hdmi.offsetWidth / 2;
+      const y = e.clientY - containerRect.top - hdmi.offsetHeight / 2;
       hdmi.style.left = `${x}px`;
       hdmi.style.top = `${y}px`;
+
+      // HDMI çıkarıldıysa efekt kapansın
+      if (pluggedIn) {
+        const hdmiRect = hdmi.getBoundingClientRect();
+        const tvRect = tv.getBoundingClientRect();
+
+        if (
+          hdmiRect.right < tvRect.left ||
+          hdmiRect.left > tvRect.right ||
+          hdmiRect.bottom < tvRect.top ||
+          hdmiRect.top > tvRect.bottom
+        ) {
+          staticEffect.style.display = 'none';
+          pluggedIn = false;
+        }
+      }
     });
   </script>
 </body>
