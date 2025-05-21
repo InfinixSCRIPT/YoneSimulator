@@ -34,6 +34,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 5px;
     }
 
     .static {
@@ -47,12 +48,13 @@
       display: none;
       flex-direction: column;
       gap: 5px;
-      padding: 10px;
+      padding: 5px;
+      text-align: left;
     }
 
     .menu button {
-      padding: 5px 10px;
-      font-size: 12px;
+      padding: 3px 8px;
+      font-size: 11px;
       border: none;
       background-color: #fff;
       cursor: pointer;
@@ -110,9 +112,19 @@
     .content {
       display: none;
       color: white;
-      font-size: 12px;
-      padding: 5px;
-      text-align: left;
+      font-size: 10px;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    .back-btn {
+      margin-top: 5px;
+      background: #ddd;
+      color: black;
+      font-size: 10px;
+      border: none;
+      cursor: pointer;
+      padding: 2px 5px;
     }
   </style>
 </head>
@@ -159,6 +171,7 @@
       if (pluggedHDMI && pluggedCD) {
         staticEffect.style.display = 'none';
         menu.style.display = 'flex';
+        content.style.display = 'none';
       } else if (pluggedHDMI) {
         staticEffect.style.display = 'block';
         menu.style.display = 'none';
@@ -199,7 +212,6 @@
         draggingItem.style.left = `${x}px`;
         draggingItem.style.top = `${y}px`;
 
-        // HDMI veya CD çıkarıldıysa TV güncelle
         if (draggingItem === hdmi && pluggedHDMI && !isOverlapping(hdmi, tv)) {
           pluggedHDMI = false;
           updateTV();
@@ -213,13 +225,42 @@
 
     function showContent(type) {
       let text = '';
+
       if (type === 'hitabe') {
-        text = `Ey Türk gençliği! Birinci vazifen, Türk istiklâlini, Türk Cumhuriyetini, ilelebet muhafaza ve müdafaa etmektir...`;
-      } else if (type === 'marş') {
-        text = `Korkma, sönmez bu şafaklarda yüzen al sancak; Sönmeden yurdumun üstünde tüten en son ocak.`;
+        text = `Ey Türk gençliği! Birinci vazifen, Türk istiklâlini, Türk Cumhuriyetini, ilelebet, muhafaza ve müdafaa etmektir. 
+Bu vazife, senin en kıymetli hazinendir. 
+İstikbâlde dahi seni bu hazineden mahrum etmek isteyecek dâhilî ve haricî bedhahların olacaktır. 
+Bir gün, istiklâl ve cumhuriyeti müdafaa mecburiyetine düşersen, vazifeye atılmak için, içinde bulunacağın vaziyetin imkân ve şerâitini düşünmeyeceksin!
+Bu imkân ve şerâit, çok nâmüsait bir mahiyette tezahür edebilir. 
+İstiklâl ve cumhuriyetine kastedecek düşmanlar, bütün dünyada emsâli görülmemiş bir galibiyetin mümessili olabilirler. 
+Cebrî ve hileî ile aziz vatanın bütün kaleleri zaptedilmiş, bütün tersanelerine girilmiş, bütün orduları dağıtılmış ve memleketin her köşesi bilfiil işgal edilmiş olabilir.
+Bütün bu şerâitten daha elim ve daha vahim olmak üzere, memleketin dâhilinde iktidara sahip olanlar gaflet ve dalâlet ve hattâ hıyanet içinde bulunabilirler. 
+Hattâ bu iktidar sahipleri şahsî menfaatlerini, müstevlilerin siyasî emelleriyle tevhit edebilirler.
+Millet, fakr ü zaruret içinde harap ve bîtap düşmüş olabilir.
+Ey Türk istikbâlinin evlâdı! İşte, bu ahvâl ve şerâit içinde dahi, vazifen; Türk istiklâl ve cumhuriyetini kurtarmaktır!
+Muhtaç olduğun kudret, damarlarındaki asil kanda mevcuttur!`;
       }
-      content.innerText = text;
+
+      if (type === 'marş') {
+        text = `Korkma, sönmez bu şafaklarda yüzen al sancak;  
+Sönmeden yurdumun üstünde tüten en son ocak.  
+O benim milletimin yıldızıdır, parlayacak;  
+O benimdir, o benim milletimindir ancak.  
+  
+Çatma, kurban olayım çehreni ey nazlı hilâl!  
+Kahraman ırkıma bir gül… ne bu şiddet bu celâl?  
+Sana olmaz dökülen kanlarımız sonra helâl…  
+Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
+      }
+
+      content.innerHTML = `<div>${text.replace(/\n/g, '<br>')}</div><button class="back-btn" onclick="backToMenu()">Ana Menüye Dön</button>`;
       content.style.display = 'block';
+      menu.style.display = 'none';
+    }
+
+    function backToMenu() {
+      content.style.display = 'none';
+      menu.style.display = 'flex';
     }
 
     handleDrag(hdmi);
