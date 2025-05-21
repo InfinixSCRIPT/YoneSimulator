@@ -31,6 +31,9 @@
       top: 60px;
       right: 20px;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .static {
@@ -38,6 +41,21 @@
       height: 100%;
       background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
       display: none;
+    }
+
+    .menu {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px;
+    }
+
+    .menu button {
+      padding: 5px 10px;
+      font-size: 12px;
+      border: none;
+      background-color: #fff;
+      cursor: pointer;
     }
 
     .konsol {
@@ -63,96 +81,149 @@
       text-shadow: 1px 1px 2px black;
     }
 
-    .hdmi {
+    .hdmi, .cd {
       width: 30px;
       height: 30px;
       background-color: #222;
       border: 2px solid #000;
       border-radius: 5px;
       position: absolute;
-      left: 360px;
-      bottom: 90px;
       cursor: grab;
       z-index: 10;
-      transition: none;
     }
 
-    .hdmi.dragging {
-      cursor: grabbing;
+    .hdmi {
+      left: 360px;
+      bottom: 90px;
+    }
+
+    .cd {
+      left: 20px;
+      top: 20px;
+      background-color: silver;
+    }
+
+    .dragging {
+      cursor: grabbing !important;
+    }
+
+    .content {
+      display: none;
+      color: white;
+      font-size: 12px;
+      padding: 5px;
+      text-align: left;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <div class="konsol">
       <div class="logo">TIMD</div>
     </div>
 
     <div class="hdmi" id="hdmi"></div>
+    <div class="cd" id="cd"></div>
 
     <div class="tv">
       <div class="static" id="static"></div>
+      <div class="menu" id="menu">
+        <button onclick="showContent('hitabe')">1. Gençliğe Hitabe</button>
+        <button onclick="showContent('marş')">2. İstiklal Marşı</button>
+        <button disabled>3. Oyun 1</button>
+        <button disabled>4. Oyun 2</button>
+      </div>
+      <div class="content" id="content"></div>
     </div>
   </div>
 
   <script>
     const hdmi = document.getElementById('hdmi');
+    const cd = document.getElementById('cd');
     const staticEffect = document.getElementById('static');
-    const tv = staticEffect.parentElement;
+    const tv = document.querySelector('.tv');
+    const menu = document.getElementById('menu');
+    const content = document.getElementById('content');
 
-    let dragging = false;
-    let pluggedIn = false;
+    let draggingItem = null;
+    let pluggedHDMI = false;
+    let pluggedCD = false;
 
-    // HDMI sürüklenmeye başladı
-    hdmi.addEventListener('mousedown', () => {
-      dragging = true;
-      hdmi.classList.add('dragging');
-    });
+    function isOverlapping(a, b) {
+      const r1 = a.getBoundingClientRect();
+      const r2 = b.getBoundingClientRect();
+      return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+    }
 
-    document.addEventListener('mouseup', () => {
-      if (!dragging) return;
-      dragging = false;
-      hdmi.classList.remove('dragging');
-
-      const hdmiRect = hdmi.getBoundingClientRect();
-      const tvRect = tv.getBoundingClientRect();
-
-      // TV ile çarpışma kontrolü
-      if (!(hdmiRect.right < tvRect.left || hdmiRect.left > tvRect.right || hdmiRect.bottom < tvRect.top || hdmiRect.top > tvRect.bottom)) {
+    function updateTV() {
+      if (pluggedHDMI && pluggedCD) {
+        staticEffect.style.display = 'none';
+        menu.style.display = 'flex';
+      } else if (pluggedHDMI) {
         staticEffect.style.display = 'block';
-        pluggedIn = true;
+        menu.style.display = 'none';
+        content.style.display = 'none';
       } else {
         staticEffect.style.display = 'none';
-        pluggedIn = false;
+        menu.style.display = 'none';
+        content.style.display = 'none';
       }
-    });
+    }
 
-    // HDMI sürükleniyor
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      const containerRect = document.querySelector('.container').getBoundingClientRect();
-      const x = e.clientX - containerRect.left - hdmi.offsetWidth / 2;
-      const y = e.clientY - containerRect.top - hdmi.offsetHeight / 2;
-      hdmi.style.left = `${x}px`;
-      hdmi.style.top = `${y}px`;
+    function handleDrag(item) {
+      item.addEventListener('mousedown', () => {
+        draggingItem = item;
+        item.classList.add('dragging');
+      });
 
-      // HDMI çıkarıldıysa efekt kapansın
-      if (pluggedIn) {
-        const hdmiRect = hdmi.getBoundingClientRect();
-        const tvRect = tv.getBoundingClientRect();
+      document.addEventListener('mouseup', () => {
+        if (!draggingItem) return;
+        draggingItem.classList.remove('dragging');
 
-        if (
-          hdmiRect.right < tvRect.left ||
-          hdmiRect.left > tvRect.right ||
-          hdmiRect.bottom < tvRect.top ||
-          hdmiRect.top > tvRect.bottom
-        ) {
-          staticEffect.style.display = 'none';
-          pluggedIn = false;
+        if (draggingItem === hdmi) {
+          pluggedHDMI = isOverlapping(hdmi, tv);
         }
+        if (draggingItem === cd) {
+          pluggedCD = isOverlapping(cd, document.querySelector('.konsol'));
+        }
+
+        updateTV();
+        draggingItem = null;
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!draggingItem) return;
+        const containerRect = document.querySelector('.container').getBoundingClientRect();
+        const x = e.clientX - containerRect.left - draggingItem.offsetWidth / 2;
+        const y = e.clientY - containerRect.top - draggingItem.offsetHeight / 2;
+        draggingItem.style.left = `${x}px`;
+        draggingItem.style.top = `${y}px`;
+
+        // HDMI veya CD çıkarıldıysa TV güncelle
+        if (draggingItem === hdmi && pluggedHDMI && !isOverlapping(hdmi, tv)) {
+          pluggedHDMI = false;
+          updateTV();
+        }
+        if (draggingItem === cd && pluggedCD && !isOverlapping(cd, document.querySelector('.konsol'))) {
+          pluggedCD = false;
+          updateTV();
+        }
+      });
+    }
+
+    function showContent(type) {
+      let text = '';
+      if (type === 'hitabe') {
+        text = `Ey Türk gençliği! Birinci vazifen, Türk istiklâlini, Türk Cumhuriyetini, ilelebet muhafaza ve müdafaa etmektir...`;
+      } else if (type === 'marş') {
+        text = `Korkma, sönmez bu şafaklarda yüzen al sancak; Sönmeden yurdumun üstünde tüten en son ocak.`;
       }
-    });
+      content.innerText = text;
+      content.style.display = 'block';
+    }
+
+    handleDrag(hdmi);
+    handleDrag(cd);
   </script>
 </body>
 </html>
