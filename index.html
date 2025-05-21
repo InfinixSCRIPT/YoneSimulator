@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>YoneSimulator</title>
+  <title>YoneSimulator v2.0 (Kablosuz)</title>
   <style>
     body {
       background-color: #F5EF3D;
@@ -57,22 +57,25 @@
       right: 20px;
       top: 50px;
       overflow: hidden;
-    }
-
-    .tv-port {
-      width: 12px;
-      height: 24px;
-      background-color: black;
-      position: absolute;
-      top: 105px;
-      right: 280px;
-      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
     }
 
     .static {
       width: 100%;
       height: 100%;
       background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
+      display: none;
+      position: absolute;
+      z-index: 1;
+    }
+
+    .tv-content {
+      z-index: 2;
       display: none;
     }
 
@@ -92,62 +95,35 @@
     .hdmi-plug.dragging {
       cursor: grabbing;
     }
-
-    .cable {
-      position: absolute;
-      width: 6px;
-      background-color: black;
-      z-index: 1;
-      transform-origin: top left;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Konsol -->
     <div class="konsol">
       <div class="logo">TIMD</div>
     </div>
 
-    <!-- HDMI Kablosunun Ucu -->
     <div class="hdmi-plug" id="hdmiPlug"></div>
 
-    <!-- HDMI Kablo Çizgisi -->
-    <div class="cable" id="cableLine"></div>
-
-    <!-- TV Portu -->
-    <div class="tv-port"></div>
-
-    <!-- Televizyon -->
     <div class="tv" id="tvScreen">
       <div class="static" id="staticEffect"></div>
+      <div class="tv-content" id="tvContent">🎮 YONE SIMULATOR 🎮</div>
     </div>
   </div>
+
+  <audio id="hdmiSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
 
   <script>
     const hdmi = document.getElementById("hdmiPlug");
     const tv = document.getElementById("tvScreen");
     const staticEffect = document.getElementById("staticEffect");
-    const cableLine = document.getElementById("cableLine");
+    const tvContent = document.getElementById("tvContent");
+    const hdmiSound = document.getElementById("hdmiSound");
 
     let dragging = false;
-    let offsetX = 15, offsetY = 15;
-
-    const baseX = 375;
-    const baseY = 310;
-
-    function updateCable(x, y) {
-      const dx = x - baseX;
-      const dy = y - baseY;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-      cableLine.style.left = `${baseX}px`;
-      cableLine.style.top = `${baseY}px`;
-      cableLine.style.height = `${length}px`;
-      cableLine.style.transform = `rotate(${angle}deg)`;
-    }
+    let pluggedIn = false;
+    const offsetX = 15, offsetY = 15;
 
     function isIntersecting(r1, r2) {
       return !(
@@ -159,6 +135,7 @@
     }
 
     hdmi.addEventListener("mousedown", () => {
+      if (pluggedIn) return;
       dragging = true;
       hdmi.classList.add("dragging");
     });
@@ -172,14 +149,24 @@
       const tvRect = tv.getBoundingClientRect();
 
       if (isIntersecting(hdmiRect, tvRect)) {
-        staticEffect.style.display = "block";
-      } else {
         staticEffect.style.display = "none";
+        tv.style.backgroundColor = "#111";
+        tvContent.style.display = "block";
+        pluggedIn = true;
+        hdmiSound.play();
+
+        // HDMI fişi sabitleniyor
+        hdmi.style.left = `${tv.offsetLeft + 90}px`;
+        hdmi.style.top = `${tv.offsetTop + 180}px`;
+      } else {
+        staticEffect.style.display = "block";
+        tvContent.style.display = "none";
+        tv.style.backgroundColor = "#000";
       }
     });
 
     document.addEventListener("mousemove", (e) => {
-      if (!dragging) return;
+      if (!dragging || pluggedIn) return;
 
       const containerRect = document.querySelector(".container").getBoundingClientRect();
       const newX = e.clientX - containerRect.left - offsetX;
@@ -187,13 +174,7 @@
 
       hdmi.style.left = `${newX}px`;
       hdmi.style.top = `${newY}px`;
-
-      updateCable(newX + offsetX, newY + offsetY);
     });
-
-    const initialX = parseInt(hdmi.style.left) || 360;
-    const initialY = parseInt(hdmi.style.top) || 310;
-    updateCable(initialX + 15, initialY + 15);
   </script>
 
 </body>
