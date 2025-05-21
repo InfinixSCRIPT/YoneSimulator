@@ -2,25 +2,42 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>YoneSimulator v2.0</title>
+  <title>YoneSimulator</title>
   <style>
     body {
       background-color: #F5EF3D;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
+      font-family: sans-serif;
     }
 
     .container {
       position: relative;
       width: 800px;
       height: 400px;
+    }
+
+    .tv {
+      width: 250px;
+      height: 150px;
+      background-color: black;
+      border: 10px solid #333;
+      border-radius: 10px;
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      overflow: hidden;
+    }
+
+    .static {
+      width: 100%;
+      height: 100%;
+      background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
+      display: none;
     }
 
     .konsol {
@@ -40,46 +57,13 @@
       position: absolute;
       top: 10px;
       left: 15px;
-      font-family: 'Arial Black', sans-serif;
+      font-weight: bold;
       font-size: 20px;
       color: #ccc;
-      letter-spacing: 2px;
       text-shadow: 1px 1px 2px black;
     }
 
-    .tv {
-      width: 250px;
-      height: 150px;
-      background-color: #000;
-      border: 10px solid #333;
-      border-radius: 10px;
-      position: absolute;
-      right: 20px;
-      top: 50px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .static {
-      width: 100%;
-      height: 100%;
-      background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
-      display: none;
-      position: absolute;
-      z-index: 1;
-    }
-
-    .tv-content {
-      z-index: 2;
-      display: none;
-    }
-
-    .hdmi-plug {
+    .hdmi {
       width: 30px;
       height: 30px;
       background-color: #222;
@@ -90,10 +74,12 @@
       bottom: 90px;
       cursor: grab;
       z-index: 10;
+      transition: left 0.6s ease, top 0.6s ease;
     }
 
-    .hdmi-plug.dragging {
+    .hdmi.dragging {
       cursor: grabbing;
+      transition: none !important;
     }
   </style>
 </head>
@@ -104,69 +90,59 @@
       <div class="logo">TIMD</div>
     </div>
 
-    <div class="hdmi-plug" id="hdmiPlug"></div>
+    <div class="hdmi" id="hdmi"></div>
 
-    <div class="tv" id="tvScreen">
-      <div class="static" id="staticEffect"></div>
-      <div class="tv-content" id="tvContent">🎮 YONE SIMULATOR 🎮</div>
+    <div class="tv">
+      <div class="static" id="static"></div>
     </div>
   </div>
 
-  <audio id="hdmiSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
-
   <script>
-    const hdmi = document.getElementById("hdmiPlug");
-    const tv = document.getElementById("tvScreen");
-    const staticEffect = document.getElementById("staticEffect");
-    const tvContent = document.getElementById("tvContent");
-    const hdmiSound = document.getElementById("hdmiSound");
+    const hdmi = document.getElementById('hdmi');
+    const staticEffect = document.getElementById('static');
 
     let dragging = false;
     let pluggedIn = false;
-    const offsetX = 15, offsetY = 15;
 
-    hdmi.addEventListener("mousedown", () => {
+    hdmi.addEventListener('mousedown', () => {
       if (pluggedIn) return;
       dragging = true;
-      hdmi.classList.add("dragging");
+      hdmi.classList.add('dragging');
     });
 
-    document.addEventListener("mouseup", () => {
-      if (!dragging) return;
+    document.addEventListener('mouseup', () => {
+      if (!dragging || pluggedIn) return;
       dragging = false;
-      hdmi.classList.remove("dragging");
+      hdmi.classList.remove('dragging');
 
       const hdmiRect = hdmi.getBoundingClientRect();
+      const tv = staticEffect.parentElement;
       const tvRect = tv.getBoundingClientRect();
 
+      // Takıldı mı diye kontrol
       if (!(hdmiRect.right < tvRect.left || hdmiRect.left > tvRect.right || hdmiRect.bottom < tvRect.top || hdmiRect.top > tvRect.bottom)) {
-        staticEffect.style.display = "none";
-        tv.style.backgroundColor = "#111";
-        tvContent.style.display = "block";
         pluggedIn = true;
-        hdmiSound.play();
 
-        // HDMI fişi sabitleniyor
-        hdmi.style.left = `${tv.offsetLeft + 90}px`;
-        hdmi.style.top = `${tv.offsetTop + 180}px`;
-      } else {
-        staticEffect.style.display = "block";
-        tvContent.style.display = "none";
-        tv.style.backgroundColor = "#000";
+        // HDMI'yı yuvaya yavaşça oturt
+        const offsetLeft = tv.offsetLeft + 100;
+        const offsetTop = tv.offsetTop + 160;
+
+        hdmi.style.left = offsetLeft + "px";
+        hdmi.style.top = offsetTop + "px";
+
+        // Karıncalanmayı başlat
+        staticEffect.style.display = 'block';
       }
     });
 
-    document.addEventListener("mousemove", (e) => {
+    document.addEventListener('mousemove', (e) => {
       if (!dragging || pluggedIn) return;
-
-      const containerRect = document.querySelector(".container").getBoundingClientRect();
-      const newX = e.clientX - containerRect.left - offsetX;
-      const newY = e.clientY - containerRect.top - offsetY;
-
-      hdmi.style.left = `${newX}px`;
-      hdmi.style.top = `${newY}px`;
+      const containerRect = document.querySelector('.container').getBoundingClientRect();
+      const x = e.clientX - containerRect.left - 15;
+      const y = e.clientY - containerRect.top - 15;
+      hdmi.style.left = `${x}px`;
+      hdmi.style.top = `${y}px`;
     });
   </script>
-
 </body>
 </html>
