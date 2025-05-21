@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>YoneSimulator v2.0 (Kablosuz)</title>
+  <title>YoneSimulator v2.0</title>
   <style>
     body {
       background-color: #F5EF3D;
@@ -125,15 +125,6 @@
     let pluggedIn = false;
     const offsetX = 15, offsetY = 15;
 
-    function isIntersecting(r1, r2) {
-      return !(
-        r1.right < r2.left ||
-        r1.left > r2.right ||
-        r1.bottom < r2.top ||
-        r1.top > r2.bottom
-      );
-    }
-
     hdmi.addEventListener("mousedown", () => {
       if (pluggedIn) return;
       dragging = true;
@@ -148,7 +139,7 @@
       const hdmiRect = hdmi.getBoundingClientRect();
       const tvRect = tv.getBoundingClientRect();
 
-      if (isIntersecting(hdmiRect, tvRect)) {
+      if (!(hdmiRect.right < tvRect.left || hdmiRect.left > tvRect.right || hdmiRect.bottom < tvRect.top || hdmiRect.top > tvRect.bottom)) {
         staticEffect.style.display = "none";
         tv.style.backgroundColor = "#111";
         tvContent.style.display = "block";
