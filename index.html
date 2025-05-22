@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>YoneSimulator</title>
   <style>
+    /* ... (mevcut stilleriniz burada olacak) ... */
     body {
       background-color: #F5EF3D;
       margin: 0;
@@ -126,6 +127,36 @@
       cursor: pointer;
       padding: 2px 5px;
     }
+
+    /* Evet-Hayır Oyun Stili */
+    .oyun-container {
+      color: white;
+      font-size: 13px;
+      text-align: center;
+      padding: 15px 0 0 0;
+    }
+    .oyun-soru {
+      margin-bottom: 18px;
+      min-height: 32px;
+    }
+    .oyun-btn-grup {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .oyun-btn {
+      min-width: 60px;
+      padding: 8px 24px;
+      font-size: 13px;
+      background: #fff;
+      color: #222;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .oyun-btn:active { background: #ffe17a; }
   </style>
 </head>
 <body>
@@ -142,7 +173,7 @@
       <div class="menu" id="menu">
         <button onclick="showContent('hitabe')">1. Gençliğe Hitabe</button>
         <button onclick="showContent('marş')">2. İstiklal Marşı</button>
-        <button disabled>3. Oyun 1</button>
+        <button id="oyun1Btn" onclick="showOyun1()">3. Oyun 1</button>
         <button disabled>4. Oyun 2</button>
       </div>
       <div class="content" id="content"></div>
@@ -156,6 +187,7 @@
     const tv = document.querySelector('.tv');
     const menu = document.getElementById('menu');
     const content = document.getElementById('content');
+    const oyun1Btn = document.getElementById('oyun1Btn');
 
     let draggingItem = null;
     let pluggedHDMI = false;
@@ -261,6 +293,53 @@ Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
     function backToMenu() {
       content.style.display = 'none';
       menu.style.display = 'flex';
+    }
+
+    // --- Oyun 1 Fonksiyonu ve Soru Sistemi ---
+    const oyunSorular = [
+      "Yalnız mısın?",
+      "Ailenle birlikte mi yaşıyorsun?",
+      "Bulunduğun ülke Avrupa ve Asya kıtasında mı yer alıyor?",
+      "Hiç cinlerle alakalı bir hikaye dinledin mi?",
+      "Bu oyunda karşılaştığın hiç ürkütücü bir şey var mı?",
+      "Titriyor musun?",
+      "Bir korkun var mı?"
+    ];
+    let oyunIndex = 0;
+
+    function showOyun1() {
+      oyunIndex = 0;
+      renderOyun1();
+      content.style.display = 'block';
+      menu.style.display = 'none';
+    }
+
+    function renderOyun1() {
+      if (oyunIndex < oyunSorular.length) {
+        content.innerHTML = `
+          <div class="oyun-container">
+            <div class="oyun-soru">${oyunSorular[oyunIndex]}</div>
+            <div class="oyun-btn-grup">
+              <button class="oyun-btn" onclick="cevaplaOyun1()">Evet</button>
+              <button class="oyun-btn" onclick="cevaplaOyun1()">Hayır</button>
+            </div>
+          </div>
+        `;
+      } else {
+        window.open("https://www.youtube.com/watch?v=3cyS6wMVCqI", "_blank");
+        content.innerHTML = `
+          <div class="oyun-container">
+            <div style="margin-bottom:12px;">Oyun bitti, teşekkürler!</div>
+            <button class="back-btn" onclick="backToMenu()">Ana Menüye Dön</button>
+          </div>
+        `;
+      }
+    }
+
+    // Tüm cevaplar için aynı işlev
+    function cevaplaOyun1() {
+      oyunIndex++;
+      renderOyun1();
     }
 
     handleDrag(hdmi);
