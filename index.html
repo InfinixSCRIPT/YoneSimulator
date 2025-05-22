@@ -14,11 +14,13 @@
       align-items: center;
       font-family: sans-serif;
     }
+
     .container {
       position: relative;
       width: 800px;
       height: 400px;
     }
+
     .tv {
       width: 250px;
       height: 150px;
@@ -34,12 +36,14 @@
       align-items: center;
       padding: 5px;
     }
+
     .static {
       width: 100%;
       height: 100%;
       background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif') center center / cover no-repeat;
       display: none;
     }
+
     .menu {
       display: none;
       flex-direction: column;
@@ -47,6 +51,7 @@
       padding: 5px;
       text-align: left;
     }
+
     .menu button {
       padding: 3px 8px;
       font-size: 11px;
@@ -54,90 +59,212 @@
       background-color: #fff;
       cursor: pointer;
     }
+
+    .konsol {
+      width: 350px;
+      height: 100px;
+      background: linear-gradient(to bottom, #333, #111);
+      border-radius: 20px;
+      border-top: 5px solid #555;
+      border-bottom: 5px solid #000;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+    }
+
+    .logo {
+      position: absolute;
+      top: 10px;
+      left: 15px;
+      font-weight: bold;
+      font-size: 20px;
+      color: #ccc;
+      text-shadow: 1px 1px 2px black;
+    }
+
+    .hdmi, .cd {
+      width: 30px;
+      height: 30px;
+      background-color: #222;
+      border: 2px solid #000;
+      border-radius: 5px;
+      position: absolute;
+      cursor: grab;
+      z-index: 10;
+    }
+
+    .hdmi {
+      left: 360px;
+      bottom: 90px;
+    }
+
+    .cd {
+      left: 20px;
+      top: 20px;
+      background-color: silver;
+    }
+
+    .dragging {
+      cursor: grabbing !important;
+    }
+
     .content {
       display: none;
       color: white;
-      font-size: 12px;
+      font-size: 10px;
       overflow-y: auto;
       height: 100%;
-      padding: 10px;
+    }
+
+    .back-btn {
+      margin-top: 5px;
+      background: #ddd;
+      color: black;
+      font-size: 10px;
+      border: none;
+      cursor: pointer;
+      padding: 2px 5px;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="konsol">
+      <div class="logo">TIMD</div>
+    </div>
+
+    <div class="hdmi" id="hdmi"></div>
+    <div class="cd" id="cd"></div>
+
     <div class="tv">
       <div class="static" id="static"></div>
       <div class="menu" id="menu">
         <button onclick="showContent('hitabe')">1. Gençliğe Hitabe</button>
-        <button onclick="showContent('mars')">2. İstiklal Marşı</button>
-        <button onclick="oyun1Baslat()">3. Oyun 1</button>
+        <button onclick="showContent('marş')">2. İstiklal Marşı</button>
+        <button disabled>3. Oyun 1</button>
         <button disabled>4. Oyun 2</button>
       </div>
       <div class="content" id="content"></div>
     </div>
   </div>
 
-  <!-- Oyun 1 Ekranı -->
-  <div id="oyun1Screen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-color:#000; color:#fff; padding:20px; box-sizing:border-box;">
-    <div id="soruMetni" style="font-size:20px; margin-bottom:20px;"></div>
-    <div>
-      <button onclick="cevapVer('evet')" style="margin-right:10px;">Evet</button>
-      <button onclick="cevapVer('hayir')">Hayır</button>
-    </div>
-    <button onclick="geriAnaMenu()" style="position:absolute; bottom:20px; left:20px;">Ana Menüye Dön</button>
-  </div>
-
   <script>
-    function showContent(type) {
-      let content = {
-        hitabe: `Ey Türk gençliği! Birinci vazifen, Türk istiklâlini, Türk Cumhuriyetini, ilelebet, muhafaza ve müdafaa etmektir. Mevcudiyetinin ve istikbalinin yegâne temeli budur... <br><br> 
-        (Tam metni burada devam ediyor...) <br><button onclick="geriAnaMenu()">Ana Menüye Dön</button>`,
-        mars: `Korkma, sönmez bu şafaklarda yüzen al sancak; Sönmeden yurdumun üstünde tüten en son ocak... <br><br> 
-        (Tam metni burada devam ediyor...) <br><button onclick="geriAnaMenu()">Ana Menüye Dön</button>`
-      };
-      
-      document.getElementById('content').innerHTML = content[type];
-      document.getElementById('content').style.display = 'block';
-      document.getElementById('menu').style.display = 'none';
+    const hdmi = document.getElementById('hdmi');
+    const cd = document.getElementById('cd');
+    const staticEffect = document.getElementById('static');
+    const tv = document.querySelector('.tv');
+    const menu = document.getElementById('menu');
+    const content = document.getElementById('content');
+
+    let draggingItem = null;
+    let pluggedHDMI = false;
+    let pluggedCD = false;
+
+    function isOverlapping(a, b) {
+      const r1 = a.getBoundingClientRect();
+      const r2 = b.getBoundingClientRect();
+      return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
     }
 
-    const sorular = [
-      "Yalnız mısın?",
-      "Ailenle birlikte mi yaşıyorsun?",
-      "Bulunduğun ülke Avrupa ve Asya kıtasında mı yer alıyor?",
-      "Hiç cinlerle alakalı bir hikaye dinledin mi?",
-      "Bu oyunda karşılaştığın hiç ürkütücü bir şey var mı?",
-      "Titriyor musun?",
-      "Bir korkun var mı?"
-    ];
-    
-    let soruIndex = 0;
-    function oyun1Baslat() {
-      soruIndex = 0;
-      document.getElementById('menu').style.display = 'none';
-      document.getElementById('oyun1Screen').style.display = 'block';
-      guncelleSoru();
-    }
-
-    function guncelleSoru() {
-      document.getElementById('soruMetni').textContent = sorular[soruIndex];
-    }
-
-    function cevapVer() {
-      soruIndex++;
-      if (soruIndex < sorular.length) {
-        guncelleSoru();
+    function updateTV() {
+      if (pluggedHDMI && pluggedCD) {
+        staticEffect.style.display = 'none';
+        menu.style.display = 'flex';
+        content.style.display = 'none';
+      } else if (pluggedHDMI) {
+        staticEffect.style.display = 'block';
+        menu.style.display = 'none';
+        content.style.display = 'none';
       } else {
-        window.open("https://www.youtube.com/watch?v=3cyS6wMVCqI", "_blank");
+        staticEffect.style.display = 'none';
+        menu.style.display = 'none';
+        content.style.display = 'none';
       }
     }
 
-    function geriAnaMenu() {
-      document.getElementById('oyun1Screen').style.display = 'none';
-      document.getElementById('menu').style.display = 'flex';
-      document.getElementById('content').style.display = 'none';
+    function handleDrag(item) {
+      item.addEventListener('mousedown', () => {
+        draggingItem = item;
+        item.classList.add('dragging');
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (!draggingItem) return;
+        draggingItem.classList.remove('dragging');
+
+        if (draggingItem === hdmi) {
+          pluggedHDMI = isOverlapping(hdmi, tv);
+        }
+        if (draggingItem === cd) {
+          pluggedCD = isOverlapping(cd, document.querySelector('.konsol'));
+        }
+
+        updateTV();
+        draggingItem = null;
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!draggingItem) return;
+        const containerRect = document.querySelector('.container').getBoundingClientRect();
+        const x = e.clientX - containerRect.left - draggingItem.offsetWidth / 2;
+        const y = e.clientY - containerRect.top - draggingItem.offsetHeight / 2;
+        draggingItem.style.left = `${x}px`;
+        draggingItem.style.top = `${y}px`;
+
+        if (draggingItem === hdmi && pluggedHDMI && !isOverlapping(hdmi, tv)) {
+          pluggedHDMI = false;
+          updateTV();
+        }
+        if (draggingItem === cd && pluggedCD && !isOverlapping(cd, document.querySelector('.konsol'))) {
+          pluggedCD = false;
+          updateTV();
+        }
+      });
     }
+
+    function showContent(type) {
+      let text = '';
+
+      if (type === 'hitabe') {
+        text = `Ey Türk gençliği! Birinci vazifen, Türk istiklâlini, Türk Cumhuriyetini, ilelebet, muhafaza ve müdafaa etmektir. 
+Mevcudiyetinin ve istikbalinin yegâne temeli budur. Bu temel, senin en kıymetli hazinendir
+İstikbâlde dahi seni bu hazineden mahrum etmek isteyecek dâhilî ve haricî bedhahların olacaktır. 
+Bir gün, istiklâl ve cumhuriyeti müdafaa mecburiyetine düşersen, vazifeye atılmak için, içinde bulunacağın vaziyetin imkân ve şerâitini düşünmeyeceksin!
+Bu imkân ve şerâit, çok nâmüsait bir mahiyette tezahür edebilir. 
+İstiklâl ve cumhuriyetine kastedecek düşmanlar, bütün dünyada emsâli görülmemiş bir galibiyetin mümessili olabilirler. 
+Cebren ve hile ile aziz vatanın bütün kaleleri zapt edilmiş, bütün tersanelerine girilmiş, bütün orduları dağıtılmış ve memleketin her köşesi bilfiil işgal edilmiş olabilir.
+Bütün bu şerâitten daha elim ve daha vahim olmak üzere, memleketin dâhilinde iktidara sahip olanlar gaflet ve dalâlet ve hattâ hıyanet içinde bulunabilirler. 
+Hattâ bu iktidar sahipleri şahsî menfaatlerini, müstevlilerin siyasî emelleriyle tevhit edebilirler.
+Millet, fakr ü zaruret içinde harap ve bîtap düşmüş olabilir.
+Ey Türk istikbâlinin evlâdı! İşte, bu ahvâl ve şerâit içinde dahi, vazifen; Türk istiklâl ve cumhuriyetini kurtarmaktır!
+Muhtaç olduğun kudret, damarlarındaki asil kanda mevcuttur!`;
+      }
+
+      if (type === 'marş') {
+        text = `Korkma, sönmez bu şafaklarda yüzen al sancak;  
+Sönmeden yurdumun üstünde tüten en son ocak.  
+O benim milletimin yıldızıdır, parlayacak;  
+O benimdir, o benim milletimindir ancak.  
+  
+Çatma, kurban olayım çehreni ey nazlı hilâl!  
+Kahraman ırkıma bir gül… ne bu şiddet bu celâl?  
+Sana olmaz dökülen kanlarımız sonra helâl…  
+Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
+      }
+
+      content.innerHTML = `<div>${text.replace(/\n/g, '<br>')}</div><button class="back-btn" onclick="backToMenu()">Ana Menüye Dön</button>`;
+      content.style.display = 'block';
+      menu.style.display = 'none';
+    }
+
+    function backToMenu() {
+      content.style.display = 'none';
+      menu.style.display = 'flex';
+    }
+
+    handleDrag(hdmi);
+    handleDrag(cd);
   </script>
 </body>
 </html>
