@@ -134,6 +134,7 @@
       font-size: 13px;
       text-align: center;
       padding: 15px 0 0 0;
+      transition: background 0.2s;
     }
     .oyun-soru {
       margin-bottom: 18px;
@@ -157,9 +158,59 @@
       transition: background 0.2s;
     }
     .oyun-btn:active { background: #ffe17a; }
+
+    /* Tam ekran overlay efekti */
+    #oyun2overlay {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(20,20,20,0.96);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      transition: background 0.2s;
+    }
+    #oyun2overlay .oyun2progressbar-wrap {
+      width: 60vw;
+      max-width: 400px;
+      margin: 40px auto 0 auto;
+      height: 28px;
+      background: #333;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px #000a;
+    }
+    #oyun2overlay .oyun2progressbar-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffe17a 0%, #f00 100%);
+      transition: width 0.13s;
+    }
+    #oyun2overlay .oyun2label {
+      font-size: 2.1rem;
+      color: #fff;
+      margin-top: 120px;
+      text-align: center;
+      text-shadow: 1px 1px 7px #000;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    @media (max-width:600px) {
+      .container { width: 99vw; }
+      #oyun2overlay .oyun2progressbar-wrap { width: 89vw; }
+    }
   </style>
 </head>
 <body>
+  <div id="oyun2overlay">
+    <div class="oyun2label" id="oyun2overlayLabel">Yükleniyor, lütfen bekleyin...</div>
+    <div class="oyun2progressbar-wrap">
+      <div class="oyun2progressbar-bar" id="oyun2overlayProgress"></div>
+    </div>
+  </div>
   <div class="container">
     <div class="konsol">
       <div class="logo">TIMD</div>
@@ -174,7 +225,7 @@
         <button onclick="showContent('hitabe')">1. Gençliğe Hitabe</button>
         <button onclick="showContent('marş')">2. İstiklal Marşı</button>
         <button id="oyun1Btn" onclick="showOyun1()">3. Oyun 1</button>
-        <button disabled>4. Oyun 2</button>
+        <button id="oyun2Btn" onclick="showOyun2()">4. Oyun 2</button>
       </div>
       <div class="content" id="content"></div>
     </div>
@@ -188,6 +239,12 @@
     const menu = document.getElementById('menu');
     const content = document.getElementById('content');
     const oyun1Btn = document.getElementById('oyun1Btn');
+    const oyun2Btn = document.getElementById('oyun2Btn');
+
+    // Overlay elemanları
+    const overlay = document.getElementById('oyun2overlay');
+    const overlayLabel = document.getElementById('oyun2overlayLabel');
+    const overlayProgress = document.getElementById('oyun2overlayProgress');
 
     let draggingItem = null;
     let pluggedHDMI = false;
@@ -340,6 +397,95 @@ Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
     function cevaplaOyun1() {
       oyunIndex++;
       renderOyun1();
+    }
+
+    // --- Oyun 2: Tam ekran efektler ve TV'de sonuç ---
+    function showOyun2() {
+      content.innerHTML = "";
+      content.style.display = 'block';
+      menu.style.display = 'none';
+
+      overlay.style.display = "flex";
+      overlay.style.background = "rgba(20,20,20,0.96)";
+      overlayLabel.textContent = "Yükleniyor, lütfen bekleyin...";
+      overlayLabel.style.color = "#fff";
+      overlayProgress.style.width = "0%";
+      let progress = 0;
+      let overlayColorIndex = 0;
+      let linkOpened = false;
+
+      function doEffectSequence() {
+        // Black flashes
+        if (overlayColorIndex < 3) {
+          overlay.style.background = "black";
+          setTimeout(() => {
+            overlay.style.background = "rgba(20,20,20,0.96)";
+            overlayColorIndex++;
+            setTimeout(doEffectSequence, 180);
+          }, 140);
+          return;
+        }
+        // Color flashes
+        if (overlayColorIndex < 6) {
+          const color = ["red", "green", "blue"][overlayColorIndex-3];
+          overlay.style.background = color;
+          setTimeout(() => {
+            overlay.style.background = "rgba(20,20,20,0.96)";
+            overlayColorIndex++;
+            setTimeout(doEffectSequence, 200);
+          }, 160);
+          return;
+        }
+        // Final yazı
+        overlayLabel.innerHTML = 'BELKI HACKLENDIN<br>BEL KIDE HACKLENDIN';
+        overlayLabel.style.color = "red";
+        overlay.style.background = "black";
+        setTimeout(() => {
+          // Windows hatası
+          overlayLabel.innerHTML = `<div style="color:#222;font-size:21px;background:#fff;border-radius:9px;padding:16px 18px 20px 18px;box-shadow:0 2px 20px #000c;max-width:380px;margin:auto;line-height:1.6;letter-spacing:1px;">
+            <b>Windows</b><br><br>
+            Bir hata oluştu.<br>
+            <i>0x0000001E: KERNEL_MODE_EXCEPTION_NOT_HANDLED</i><br><br>
+            <button id="oyun2closeBtn" style="font-size:17px;background:#d00;color:#fff;border-radius:7px;border:none;padding:7px 20px;cursor:pointer;margin-top:14px;">Kapat</button>
+          </div>`;
+          overlay.style.background = "#fff";
+          function cleanup() {
+            if (!linkOpened) {
+              linkOpened = true;
+              window.open('https://www.youtube.com/watch?v=iMHKeLXFbX0', '_blank');
+              overlay.style.display = "none";
+              // TV'ye başarıyla yüklendi yazısı ve buton
+              content.innerHTML = `
+                <div class="oyun-container">
+                  <div class="oyun-soru" style="color:#2fdc6f; font-size:16px; font-weight:bold; margin-bottom:18px;letter-spacing:1.1px;">Başarıyla yüklendi!</div>
+                  <button class="back-btn" onclick="backToMenu()">Ana Menüye Dön</button>
+                </div>
+              `;
+              content.style.display = "block";
+            }
+          }
+          setTimeout(cleanup, 5000);
+          setTimeout(function() {
+            let btn = document.getElementById('oyun2closeBtn');
+            if(btn) btn.onclick = cleanup;
+          }, 150);
+        }, 1500);
+      }
+
+      // Progress bar animasyonu
+      function updateProgress() {
+        if (progress > 100) return;
+        overlayProgress.style.width = progress + '%';
+        overlayLabel.textContent = `Yükleniyor, lütfen bekleyin... %${progress}`;
+        if (progress === 25) {
+          setTimeout(doEffectSequence, 400);
+        }
+        if (progress < 100) {
+          progress += 1;
+          setTimeout(updateProgress, 47);
+        }
+      }
+      updateProgress();
     }
 
     handleDrag(hdmi);
