@@ -22,4 +22,7 @@ OYUNUN 4.SEÇENEĞİ YANİ OYUN 2 11 YAŞ VE ÜZERİ İÇİNDİR. ÖNCEDE BELİR
 EĞER UYARIYI DİKKAT'E ALMAZSANIZ OLACAKLARDAN BİZ SORUMLU DEĞİLİZ!
 # UYARI 3! 
 BU OYUNU OYNARKEN KULAKLIK TAKMANIZ VE SES ŞİDDETİNİ AZALTMANIZ ŞİDDETLE ÖNERİLİR! KEYIFLI OYUNLAR DILERIZ
-
+# Yama Notlar v1.9 
+Oyuna Yone TV yazısı eklendi. Ayriyetten bazı hatalar düzeltildi ve Oyun 3 eklendi
+Şuanda basit bir oyun daha sonra düzelteceğiz
+Yeni güncellemeler için beklemede kalın!
