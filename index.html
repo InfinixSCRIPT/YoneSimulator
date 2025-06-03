@@ -217,6 +217,12 @@
       .container { width: 99vw; }
       #oyun2overlay .oyun2progressbar-wrap { width: 89vw; }
     }
+
+    /* Mayın Tarlası için ekstra stiller */
+    .oyun3cell.mine { background: #f88 !important; }
+    .oyun3cell.number { color: #1645f7; background: #fff !important; font-weight:bold; }
+    .oyun3cell.empty { background: #fff !important; }
+    .oyun3cell[disabled] { cursor: not-allowed; opacity: 0.7; }
   </style>
 </head>
 <body>
@@ -469,7 +475,7 @@ Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
         overlay.style.background = "black";
         setTimeout(() => {
           // Windows hatası
-          overlayLabel.innerHTML = `<div style="color:#222;font-size:21px;background:#fff;border-radius:9px;padding:16px 18px 20px 18px;box-shadow:0 2px 20px #000c;max-width:380px;margin:auto;line-height:1.6;letter-spacing:1px;">
+          overlayLabel.innerHTML = `<div style="color:#222;font-size:21px;background:#fff;border-radius:9px;padding:16px 18px 20px 18px;box-shadow:0 2px 20px #000c;max-width:380px;margin:auto;line-hei[...]
             <b>Windows</b><br><br>
             Bir hata oluştu.<br>
             <i>0x0000001E: KERNEL_MODE_EXCEPTION_NOT_HANDLED</i><br><br>
@@ -516,45 +522,139 @@ Hakkıdır, Hakk’a tapan, milletimin istiklâl!`;
       updateProgress();
     }
 
-    // --- Oyun 3: Basit bir sayı tahmin oyunu örneği ---
-    let oyun3Number = 0;
-    let oyun3Tries = 0;
+    // --- Oyun 3: Mayın Tarlası Oyunu ---
+    const GRID_SIZE = 6; // 6x6'lık bir alan
+    const MINE_COUNT = 6;
+    let minefield = [];
+    let revealed = [];
+    let gameOver = false;
 
     function showOyun3() {
-      oyun3Number = Math.floor(Math.random() * 20) + 1;
-      oyun3Tries = 0;
-      content.innerHTML = `
-        <div class="oyun-container" id="oyun3container">
-          <div class="oyun-soru" id="oyun3soru">1 ile 20 arasında bir sayı tuttum, tahmin et!</div>
-          <input type="number" id="oyun3input" min="1" max="20" style="padding:3px 6px;font-size:13px;width:60px;text-align:center;margin-bottom:10px;">
-          <button class="oyun-btn" onclick="oyun3Tahmin()">Tahmin Et</button>
-          <div id="oyun3cevap" style="margin-top:10px;font-size:13px;color:#ffe17a;"></div>
-          <button class="back-btn" onclick="backToMenu()" style="margin-top:12px;">Ana Menüye Dön</button>
-        </div>
-      `;
+      createMinefield();
+      renderMinefield();
       content.style.display = 'block';
       menu.style.display = 'none';
       tvLabel.style.display = "none";
-      document.getElementById('oyun3input').focus();
     }
 
-    window.oyun3Tahmin = function() {
-      const val = Number(document.getElementById('oyun3input').value);
-      const cevap = document.getElementById('oyun3cevap');
-      oyun3Tries++;
-      if (isNaN(val) || val < 1 || val > 20) {
-        cevap.textContent = "Lütfen 1 ile 20 arasında bir sayı gir!";
-      } else if (val === oyun3Number) {
-        cevap.style.color = "#2fdc6f";
-        cevap.textContent = `Tebrikler! ${oyun3Tries}. denemede doğru bildin!`;
-      } else if (val < oyun3Number) {
-        cevap.style.color = "#ffe17a";
-        cevap.textContent = "Daha büyük bir sayı gir!";
-      } else {
-        cevap.style.color = "#ffe17a";
-        cevap.textContent = "Daha küçük bir sayı gir!";
+    function createMinefield() {
+      // Alan ve mayınları oluştur
+      minefield = [];
+      revealed = [];
+      for (let i = 0; i < GRID_SIZE; i++) {
+        minefield.push(new Array(GRID_SIZE).fill(0));
+        revealed.push(new Array(GRID_SIZE).fill(false));
       }
-      document.getElementById('oyun3input').focus();
+      // Mayınları rastgele yerleştir
+      let placed = 0;
+      while (placed < MINE_COUNT) {
+        const x = Math.floor(Math.random() * GRID_SIZE);
+        const y = Math.floor(Math.random() * GRID_SIZE);
+        if (minefield[x][y] === 0) {
+          minefield[x][y] = 'M';
+          placed++;
+        }
+      }
+      // Her hücreye komşu mayın sayısını ekle
+      for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+          if (minefield[i][j] !== 'M') {
+            minefield[i][j] = countAdjacentMines(i, j);
+          }
+        }
+      }
+      gameOver = false;
+    }
+
+    function countAdjacentMines(x, y) {
+      let count = 0;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+            if (minefield[nx][ny] === 'M') count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function renderMinefield(showAll = false) {
+      let html = `<div class="oyun-container"><div class="oyun-soru" style="margin-bottom:8px;">Mayınlardan kaçın! ${MINE_COUNT} mayın var.</div>`;
+      html += `<div style="display:grid; grid-template-columns: repeat(${GRID_SIZE}, 38px); gap:3px; justify-content:center;">`;
+      for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+          let cellContent = '';
+          let cellClass = 'oyun3cell';
+          if (showAll || revealed[i][j]) {
+            if (minefield[i][j] === 'M') {
+              cellContent = '💣';
+              cellClass += ' mine';
+            } else if (minefield[i][j] === 0) {
+              cellContent = '';
+              cellClass += ' empty';
+            } else {
+              cellContent = minefield[i][j];
+              cellClass += ' number';
+            }
+          }
+          html += `<button class="${cellClass}" style="width:38px;height:38px;font-size:1.1rem;border-radius:6px;border:1.5px solid #888;background:#eee;cursor:pointer;" 
+          onclick="oyun3Click(${i},${j})" ${gameOver || revealed[i][j] || showAll ? 'disabled' : ''}>${cellContent}</button>`;
+        }
+      }
+      html += '</div>';
+      html += `<div id="oyun3message" style="margin-top:12px;min-height:24px;font-size:14px;"></div>`;
+      html += `<button class="back-btn" onclick="backToMenu()" style="margin-top:14px;">Ana Menüye Dön</button>`;
+      html += `<button class="back-btn" onclick="showOyun3()" style="margin-top:14px;margin-left:14px;">Yeniden Başlat</button>`;
+      html += `</div>`;
+      content.innerHTML = html;
+    }
+
+    window.oyun3Click = function(i, j) {
+      if (gameOver || revealed[i][j]) return;
+      revealed[i][j] = true;
+      if (minefield[i][j] === 'M') {
+        gameOver = true;
+        renderMinefield(true);
+        document.getElementById('oyun3message').innerHTML = `<span style="color:#e21;">Mayına bastın! Oyun bitti.</span>`;
+      } else {
+        // Sıfırsa komşu boşlukları aç
+        if (minefield[i][j] === 0) {
+          revealZeros(i, j);
+        }
+        renderMinefield();
+        if (checkWin()) {
+          gameOver = true;
+          renderMinefield(true);
+          document.getElementById('oyun3message').innerHTML = `<span style="color:#23ff41;">Tebrikler, tüm mayınlardan kaçtın!</span>`;
+        }
+      }
+    }
+
+    function revealZeros(x, y) {
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && !revealed[nx][ny]) {
+            revealed[nx][ny] = true;
+            if (minefield[nx][ny] === 0) {
+              revealZeros(nx, ny);
+            }
+          }
+        }
+      }
+    }
+
+    function checkWin() {
+      for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+          if (minefield[i][j] !== 'M' && !revealed[i][j]) return false;
+        }
+      }
+      return true;
     }
 
     // Yone TV sadece Gri kare (cd) konsola ve HDMI TV'ye bağlıysa çıkacak ve sadece ana menüde görünecek
