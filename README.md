@@ -26,3 +26,9 @@ BU OYUNU OYNARKEN KULAKLIK TAKMANIZ VE SES ŞİDDETİNİ AZALTMANIZ ŞİDDETLE �
 Oyuna Yone TV yazısı eklendi. Ayriyetten bazı hatalar düzeltildi ve Oyun 3 eklendi
 Şuanda basit bir oyun daha sonra düzelteceğiz
 Yeni güncellemeler için beklemede kalın!
+# Yama Notları v2.5 
+OYUN ARTIK GERÇEK OLARAK ÇIKTI YANI ŞUANDA OYUNA ERIŞMENIZ IÇIN BIR LINK BULABILIRSINIZ LINK MD'YE GIDEREK
+Her Neyse Oyun 3'e güzel bir yenilik ekledik. Bu yenilik Oyun 3'ü basit birşeyden çıkarıyor. Oyun 3 Artuk Mayın tarlası. 
+Onun Dışında herhangi birşey eklenmedi. 
+Not: Artık gelecek güncellemeyi açıklıyoruz gleecek güncelleme v3.2 olacak. Bu Güncelleme ile nelerin geleceğini şuan söyleyemiz. Ama beklemede Kalın
+Oyun 3 Update 3.06.2025 20:10 
